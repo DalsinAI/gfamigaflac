@@ -1,0 +1,9 @@
+# What this port builds on: fetched at build time, never shipped.
+# FLAC 1.5.0 (tag 1.5.0); the tools are GPL 2 or later, libFLAC BSD (Xiph)
+FLAC_GIT=https://github.com/xiph/flac.git
+FLAC_COMMIT=1507800de4b70e21be71f38caa0d9079d0bc6e45
+FLAC_VERSION=1.5.0
+# Our own pieces, fetched at these commits
+# fpuauto (common/fpuauto): the FPU when there is one
+FPA_REPO=https://github.com/DalsinAI/amicradle-guest
+FPA_COMMIT=4a784c84b878fe0e9abade7006e67e1ded9b165c

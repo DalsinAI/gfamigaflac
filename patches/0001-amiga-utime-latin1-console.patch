@@ -1,0 +1,78 @@
+diff --git a/include/share/compat.h b/include/share/compat.h
+index 9765949..e2db919 100644
+--- a/include/share/compat.h
++++ b/include/share/compat.h
+@@ -126,7 +126,7 @@
+ #include <sys/utime.h> /* for utime() */
+ #endif
+ #else
+-#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
++#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(__amigaos__) /* libnix: utime, no utimensat */
+ #include <fcntl.h>
+ #else
+ #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
+@@ -203,7 +203,7 @@
+ #define flac_rename rename
+ #define flac_stat stat
+ 
+-#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
++#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(__amigaos__) /* libnix: utime, no utimensat */
+ #define flac_utime(a, b) utimensat (AT_FDCWD, a, *b, 0)
+ #else
+ #define flac_utime utime
+diff --git a/src/flac/utils.c b/src/flac/utils.c
+index a1ce79d..c4176b7 100644
+--- a/src/flac/utils.c
++++ b/src/flac/utils.c
+@@ -210,7 +210,7 @@ size_t strlen_console(const char *text)
+ {
+ #ifdef _WIN32
+ 	return strlen_utf8(text);
+-#elif defined(__DJGPP__) /* workaround for DJGPP missing wcswidth() */
++#elif defined(__DJGPP__) || defined(__amigaos__) /* DJGPP and libnix have no wcswidth(); the Amiga console is Latin-1, one column a byte */
+ 	return strlen(text);
+ #else
+ 	size_t len;
+diff --git a/src/libFLAC/metadata_iterators.c b/src/libFLAC/metadata_iterators.c
+index e229eda..22f75da 100644
+--- a/src/libFLAC/metadata_iterators.c
++++ b/src/libFLAC/metadata_iterators.c
+@@ -3599,7 +3599,7 @@ FLAC__bool get_file_stats_(const char *filename, struct flac_stat_s *stats)
+ 
+ void set_file_stats_(const char *filename, struct flac_stat_s *stats)
+ {
+-#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32)
++#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32) && !defined(__amigaos__)
+ 	struct timespec srctime[2] = {};
+ 	srctime[0].tv_sec = stats->st_atime;
+ 	srctime[1].tv_sec = stats->st_mtime;
+diff --git a/src/share/grabbag/file.c b/src/share/grabbag/file.c
+index 2ef9d6f..8438a62 100644
+--- a/src/share/grabbag/file.c
++++ b/src/share/grabbag/file.c
+@@ -54,7 +54,7 @@ void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
+ 	struct flac_stat_s srcstat;
+ 
+ 	if(0 == flac_stat(srcpath, &srcstat)) {
+-#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32)
++#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32) && !defined(__amigaos__)
+ 		struct timespec srctime[2] = {};
+ 		srctime[0].tv_sec = srcstat.st_atime;
+ 		srctime[1].tv_sec = srcstat.st_mtime;
+diff --git a/src/share/utf8/utf8.c b/src/share/utf8/utf8.c
+index 34af187..76c436e 100644
+--- a/src/share/utf8/utf8.c
++++ b/src/share/utf8/utf8.c
+@@ -140,7 +140,12 @@ static const char *current_charset(void)
+   if (!c)
+     c = getenv("CHARSET");
+ 
++#ifdef __amigaos__
++  /* the Amiga's own text (file names, the Shell) is Latin-1 */
++  return c? c : "ISO-8859-1";
++#else
+   return c? c : "US-ASCII";
++#endif
+ }
+ 
+ static int convert_buffer(const char *fromcode, const char *tocode,

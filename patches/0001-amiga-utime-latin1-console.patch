@@ -20,6 +20,19 @@ index 9765949..e2db919 100644
  #define flac_utime(a, b) utimensat (AT_FDCWD, a, *b, 0)
  #else
  #define flac_utime utime
+diff --git a/src/flac/utils.c b/src/flac/utils.c
+index a1ce79d..c4176b7 100644
+--- a/src/flac/utils.c
++++ b/src/flac/utils.c
+@@ -210,7 +210,7 @@ size_t strlen_console(const char *text)
+ {
+ #ifdef _WIN32
+ 	return strlen_utf8(text);
+-#elif defined(__DJGPP__) /* workaround for DJGPP missing wcswidth() */
++#elif defined(__DJGPP__) || defined(__amigaos__) /* DJGPP and libnix have no wcswidth(); the Amiga console is Latin-1, one column a byte */
+ 	return strlen(text);
+ #else
+ 	size_t len;
 diff --git a/src/libFLAC/metadata_iterators.c b/src/libFLAC/metadata_iterators.c
 index e229eda..22f75da 100644
 --- a/src/libFLAC/metadata_iterators.c

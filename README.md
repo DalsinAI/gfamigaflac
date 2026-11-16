@@ -23,7 +23,7 @@ otherwise). Files up to 2 GB. Ogg FLAC is not built.
 
 FLAC is fetched at the commit `flac.lock` pins and patched from `patches/`
 (utime in place of utimensat, which libnix lacks; Latin-1 as the default
-charset); `compat/config.h` stands for FLAC's configure. It builds with soft
+charset and the console's width, one column a byte); `compat/config.h` stands for FLAC's configure. It builds with soft
 float, taking the FPU where there is one (fpuauto), on one thread.
 
 ## Tests
